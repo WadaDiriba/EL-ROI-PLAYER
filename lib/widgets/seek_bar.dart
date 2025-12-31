@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+
 class SeekBar extends StatelessWidget{
+
 
   final VideoPlayerController controller;
 
@@ -15,8 +17,9 @@ class SeekBar extends StatelessWidget{
     return  Slider(
       value:position.inSeconds.toDouble(),
       max: duration.inSeconds.toDouble(),
-       onChanged:(value){
 
+       onChanged:(value){
+   
         controller.seekTo(Duration(seconds: value.toInt()));
        }
        );

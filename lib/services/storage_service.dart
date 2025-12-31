@@ -1,22 +1,54 @@
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
+
 class StorageService {
 
-  static Future<File?> pickVideo()async{
+  /// Get ALL video files from internal storage (no folder limit)
+  static Future<List<File>> getVideos() async {
+    final List<File> videos = [];
 
-    await Permission.storage.request();
+    // Get Android internal storage root
+    final Directory? baseDir = await getExternalStorageDirectory();
+    if (baseDir == null) return videos;
 
-    final result=await FilePicker.platform.pickFiles(
+    // Go to /storage/emulated/0/
+    final Directory rootDir =
+        Directory(baseDir.parent.parent.parent.parent.path);
 
-      type: FileType.video,
-    );
+    // Video extensions (add more if needed)
+    const videoExtensions = [
+      '.mp4',
+      '.mkv',
+      '.avi',
+      '.mov',
+      '.flv',
+      '.wmv',
+      '.webm',
+      '.3gp',
+      '.mpeg',
+      '.mpg'
+    ];
 
-    if(result !=null && result.files.single.path !=null){
+    try {
+      // Scan ALL folders recursively
+      final List<FileSystemEntity> files =
+          rootDir.listSync(recursive: true, followLinks: false);
 
-      return File(result.files.single.path!);
+      for (final file in files) {
+        if (file is File) {
+          final path = file.path.toLowerCase();
+
+          // Check if file is a video
+          if (videoExtensions.any((ext) => path.endsWith(ext))) {
+            videos.add(file);
+          }
+        }
+      }
+    } catch (e) {
+      // Prevent crash if some folders are restricted
+      print("Storage scan error: $e");
     }
 
-    return null;
+    return videos;
   }
 }
